@@ -38,6 +38,7 @@ test = [
 lint = [
   "codespell==2.4.0",
   "flake8==5.0.4",
+  "md-snakeoil==0.1.3",
   "mypy==0.981",
   "pylint==3.3.1",
 ]
