@@ -207,7 +207,7 @@ lint: pyspec _check_toc
 	@$(PYTHON_VENV) -m flake8 --config $(FLAKE8_CONFIG) $(TEST_GENERATORS_DIR)
 	@$(PYTHON_VENV) -m pylint --rcfile $(PYLINT_CONFIG) $(PYLINT_SCOPE)
 	@$(PYTHON_VENV) -m mypy --config-file $(MYPY_CONFIG) $(MYPY_SCOPE)
-	@$(PYTHON_VENV) -m md_snakeoil.cli directory specs
+	@$(PYTHON_VENV) -m md_snakeoil.cli $(SPEC_DIR)
 
 ###############################################################################
 # Generators
