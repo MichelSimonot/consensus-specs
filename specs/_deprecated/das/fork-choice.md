@@ -26,20 +26,39 @@ The "root" of a shard block for data dependency purposes is considered to be a `
 def get_new_dependencies(state: BeaconState) -> Set[DataCommitment]:
     return set(
         # Already confirmed during this epoch
-        [c.commitment for c in state.current_epoch_pending_headers if c.confirmed] +
+        [
+            c.commitment
+            for c in state.current_epoch_pending_headers
+            if c.confirmed
+        ]
+        +
         # Already confirmed during previous epoch
-        [c.commitment for c in state.previous_epoch_pending_headers if c.confirmed] +
+        [
+            c.commitment
+            for c in state.previous_epoch_pending_headers
+            if c.confirmed
+        ]
+        +
         # Confirmed in the epoch before the previous
-        [c for c in shard for shard in state.grandparent_epoch_confirmed_commitments if c != DataCommitment()]
+        [
+            c
+            for c in shard
+            for shard in state.grandparent_epoch_confirmed_commitments
+            if c != DataCommitment()
+        ]
     )
 ```
 
 ```python
-def get_all_dependencies(store: Store, block: BeaconBlock) -> Set[DataCommitment]:
+def get_all_dependencies(
+    store: Store, block: BeaconBlock
+) -> Set[DataCommitment]:
     if compute_epoch_at_slot(block.slot) < SHARDING_FORK_EPOCH:
         return set()
     else:
-        latest = get_new_dependencies(store.block_states[hash_tree_root(block)])
+        latest = get_new_dependencies(
+            store.block_states[hash_tree_root(block)]
+        )
         older = get_all_dependencies(store, store.blocks[block.parent_root])
         return latest.union(older)
 ```

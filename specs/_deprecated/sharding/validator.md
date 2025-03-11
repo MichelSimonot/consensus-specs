@@ -55,25 +55,36 @@ Please see related Beacon Chain doc before continuing and use them as a referenc
 TODO: Currently the subnets are public (i.e. anyone can derive them.) This is good for a proof of custody with public verifiability, but bad for validator privacy.
 
 ```python
-def get_validator_row_subnets(validator: Validator, epoch: Epoch) -> List[uint64]:
-    return [int.from_bytes(hash_tree_root([validator.pubkey, 0, i])) for i in range(VALIDATOR_SAMPLE_ROW_COUNT)]
+def get_validator_row_subnets(
+    validator: Validator, epoch: Epoch
+) -> List[uint64]:
+    return [
+        int.from_bytes(hash_tree_root([validator.pubkey, 0, i]))
+        for i in range(VALIDATOR_SAMPLE_ROW_COUNT)
+    ]
 ```
 
 ### `get_validator_column_subnets`
 
 ```python
-def get_validator_column_subnets(validator: Validator, epoch: Epoch) -> List[uint64]:
-    return [int.from_bytes(hash_tree_root([validator.pubkey, 1, i])) for i in range(VALIDATOR_SAMPLE_COLUMN_COUNT)]
+def get_validator_column_subnets(
+    validator: Validator, epoch: Epoch
+) -> List[uint64]:
+    return [
+        int.from_bytes(hash_tree_root([validator.pubkey, 1, i]))
+        for i in range(VALIDATOR_SAMPLE_COLUMN_COUNT)
+    ]
 ```
 
 ### `reconstruct_polynomial`
 
 ```python
-def reconstruct_polynomial(samples: List[SignedShardSample]) -> List[SignedShardSample]:
+def reconstruct_polynomial(
+    samples: List[SignedShardSample],
+) -> List[SignedShardSample]:
     """
     Reconstructs one full row/column from at least 1/2 of the samples
     """
-
 ```
 
 ## Sample verification
@@ -81,8 +92,12 @@ def reconstruct_polynomial(samples: List[SignedShardSample]) -> List[SignedShard
 ### `verify_sample`
 
 ```python
-def verify_sample(state: BeaconState, block: BeaconBlock, sample: SignedShardSample):
-    assert sample.row < 2 * get_active_shard_count(state, get_current_epoch(block.slot))
+def verify_sample(
+    state: BeaconState, block: BeaconBlock, sample: SignedShardSample
+):
+    assert sample.row < 2 * get_active_shard_count(
+        state, get_current_epoch(block.slot)
+    )
     assert sample.column < 2 * SAMPLES_PER_BLOB
     assert block.slot == sample.slot
 
@@ -92,13 +107,22 @@ def verify_sample(state: BeaconState, block: BeaconBlock, sample: SignedShardSam
     # signing_root = compute_signing_root(sample, get_domain(state, DOMAIN_SHARD_SAMPLE))
     # assert bls.Verify(sample.builder, signing_root, sample.signature)
 
-    roots_in_rbo = list_to_reverse_bit_order(roots_of_unity(SAMPLES_PER_BLOB * FIELD_ELEMENTS_PER_SAMPLE))
+    roots_in_rbo = list_to_reverse_bit_order(
+        roots_of_unity(SAMPLES_PER_BLOB * FIELD_ELEMENTS_PER_SAMPLE)
+    )
 
     # Verify KZG proof
-    verify_kzg_multiproof(block.body.payload_data.value.sharded_commitments_container.sharded_commitments[sample.row],
-                          roots_in_rbo[sample.column * FIELD_ELEMENTS_PER_SAMPLE:(sample.column + 1) * FIELD_ELEMENTS_PER_SAMPLE],
-                          sample.data,
-                          sample.proof)
+    verify_kzg_multiproof(
+        block.body.payload_data.value.sharded_commitments_container.sharded_commitments[
+            sample.row
+        ],
+        roots_in_rbo[
+            sample.column * FIELD_ELEMENTS_PER_SAMPLE : (sample.column + 1)
+            * FIELD_ELEMENTS_PER_SAMPLE
+        ],
+        sample.data,
+        sample.proof,
+    )
 ```
 
 # Beacon chain responsibilities

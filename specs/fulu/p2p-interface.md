@@ -91,7 +91,9 @@ def verify_data_column_sidecar(sidecar: DataColumnSidecar) -> bool:
         return False
 
     # The column length must be equal to the number of commitments/proofs
-    if len(sidecar.column) != len(sidecar.kzg_commitments) or len(sidecar.column) != len(sidecar.kzg_proofs):
+    if len(sidecar.column) != len(sidecar.kzg_commitments) or len(
+        sidecar.column
+    ) != len(sidecar.kzg_proofs):
         return False
 
     return True
@@ -119,11 +121,15 @@ def verify_data_column_sidecar_kzg_proofs(sidecar: DataColumnSidecar) -> bool:
 ##### `verify_data_column_sidecar_inclusion_proof`
 
 ```python
-def verify_data_column_sidecar_inclusion_proof(sidecar: DataColumnSidecar) -> bool:
+def verify_data_column_sidecar_inclusion_proof(
+    sidecar: DataColumnSidecar,
+) -> bool:
     """
     Verify if the given KZG commitments included in the given beacon block.
     """
-    gindex = get_subtree_index(get_generalized_index(BeaconBlockBody, 'blob_kzg_commitments'))
+    gindex = get_subtree_index(
+        get_generalized_index(BeaconBlockBody, "blob_kzg_commitments")
+    )
     return is_valid_merkle_branch(
         leaf=hash_tree_root(sidecar.kzg_commitments),
         branch=sidecar.kzg_commitments_inclusion_proof,
@@ -136,7 +142,9 @@ def verify_data_column_sidecar_inclusion_proof(sidecar: DataColumnSidecar) -> bo
 ##### `compute_subnet_for_data_column_sidecar`
 
 ```python
-def compute_subnet_for_data_column_sidecar(column_index: ColumnIndex) -> SubnetID:
+def compute_subnet_for_data_column_sidecar(
+    column_index: ColumnIndex,
+) -> SubnetID:
     return SubnetID(column_index % DATA_COLUMN_SIDECAR_SUBNET_COUNT)
 ```
 

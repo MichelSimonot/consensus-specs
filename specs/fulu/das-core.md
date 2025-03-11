@@ -87,7 +87,9 @@ class DataColumnSidecar(Container):
     kzg_commitments: List[KZGCommitment, MAX_BLOB_COMMITMENTS_PER_BLOCK]
     kzg_proofs: List[KZGProof, MAX_BLOB_COMMITMENTS_PER_BLOCK]
     signed_block_header: SignedBeaconBlockHeader
-    kzg_commitments_inclusion_proof: Vector[Bytes32, KZG_COMMITMENTS_INCLUSION_PROOF_DEPTH]
+    kzg_commitments_inclusion_proof: Vector[
+        Bytes32, KZG_COMMITMENTS_INCLUSION_PROOF_DEPTH
+    ]
 ```
 
 #### `MatrixEntry`
@@ -105,7 +107,9 @@ class MatrixEntry(Container):
 ### `get_custody_groups`
 
 ```python
-def get_custody_groups(node_id: NodeID, custody_group_count: uint64) -> Sequence[CustodyIndex]:
+def get_custody_groups(
+    node_id: NodeID, custody_group_count: uint64
+) -> Sequence[CustodyIndex]:
     assert custody_group_count <= NUMBER_OF_CUSTODY_GROUPS
 
     current_id = uint256(node_id)
@@ -130,13 +134,17 @@ def get_custody_groups(node_id: NodeID, custody_group_count: uint64) -> Sequence
 ### `compute_columns_for_custody_group`
 
 ```python
-def compute_columns_for_custody_group(custody_group: CustodyIndex) -> Sequence[ColumnIndex]:
+def compute_columns_for_custody_group(
+    custody_group: CustodyIndex,
+) -> Sequence[ColumnIndex]:
     assert custody_group < NUMBER_OF_CUSTODY_GROUPS
     columns_per_group = NUMBER_OF_COLUMNS // NUMBER_OF_CUSTODY_GROUPS
-    return sorted([
-        ColumnIndex(NUMBER_OF_CUSTODY_GROUPS * i + custody_group)
-        for i in range(columns_per_group)
-    ])
+    return sorted(
+        [
+            ColumnIndex(NUMBER_OF_CUSTODY_GROUPS * i + custody_group)
+            for i in range(columns_per_group)
+        ]
+    )
 ```
 
 ### `compute_matrix`
@@ -153,19 +161,23 @@ def compute_matrix(blobs: Sequence[Blob]) -> Sequence[MatrixEntry]:
     for blob_index, blob in enumerate(blobs):
         cells, proofs = compute_cells_and_kzg_proofs(blob)
         for cell_index, (cell, proof) in enumerate(zip(cells, proofs)):
-            matrix.append(MatrixEntry(
-                cell=cell,
-                kzg_proof=proof,
-                row_index=blob_index,
-                column_index=cell_index,
-            ))
+            matrix.append(
+                MatrixEntry(
+                    cell=cell,
+                    kzg_proof=proof,
+                    row_index=blob_index,
+                    column_index=cell_index,
+                )
+            )
     return matrix
 ```
 
 ### `recover_matrix`
 
 ```python
-def recover_matrix(partial_matrix: Sequence[MatrixEntry], blob_count: uint64) -> Sequence[MatrixEntry]:
+def recover_matrix(
+    partial_matrix: Sequence[MatrixEntry], blob_count: uint64
+) -> Sequence[MatrixEntry]:
     """
     Recover the full, flattened sequence of matrix entries.
 
@@ -174,26 +186,39 @@ def recover_matrix(partial_matrix: Sequence[MatrixEntry], blob_count: uint64) ->
     """
     matrix = []
     for blob_index in range(blob_count):
-        cell_indices = [e.column_index for e in partial_matrix if e.row_index == blob_index]
+        cell_indices = [
+            e.column_index for e in partial_matrix if e.row_index == blob_index
+        ]
         cells = [e.cell for e in partial_matrix if e.row_index == blob_index]
-        recovered_cells, recovered_proofs = recover_cells_and_kzg_proofs(cell_indices, cells)
-        for cell_index, (cell, proof) in enumerate(zip(recovered_cells, recovered_proofs)):
-            matrix.append(MatrixEntry(
-                cell=cell,
-                kzg_proof=proof,
-                row_index=blob_index,
-                column_index=cell_index,
-            ))
+        recovered_cells, recovered_proofs = recover_cells_and_kzg_proofs(
+            cell_indices, cells
+        )
+        for cell_index, (cell, proof) in enumerate(
+            zip(recovered_cells, recovered_proofs)
+        ):
+            matrix.append(
+                MatrixEntry(
+                    cell=cell,
+                    kzg_proof=proof,
+                    row_index=blob_index,
+                    column_index=cell_index,
+                )
+            )
     return matrix
 ```
 
 ### `get_data_column_sidecars`
 
 ```python
-def get_data_column_sidecars(signed_block: SignedBeaconBlock,
-                             cells_and_kzg_proofs: Sequence[Tuple[
-        Vector[Cell, CELLS_PER_EXT_BLOB],
-        Vector[KZGProof, CELLS_PER_EXT_BLOB]]]) -> Sequence[DataColumnSidecar]:
+def get_data_column_sidecars(
+    signed_block: SignedBeaconBlock,
+    cells_and_kzg_proofs: Sequence[
+        Tuple[
+            Vector[Cell, CELLS_PER_EXT_BLOB],
+            Vector[KZGProof, CELLS_PER_EXT_BLOB],
+        ]
+    ],
+) -> Sequence[DataColumnSidecar]:
     """
     Given a signed block and the cells/proofs associated with each blob in the
     block, assemble the sidecars which can be distributed to peers.
@@ -203,7 +228,7 @@ def get_data_column_sidecars(signed_block: SignedBeaconBlock,
     signed_block_header = compute_signed_block_header(signed_block)
     kzg_commitments_inclusion_proof = compute_merkle_proof(
         signed_block.message.body,
-        get_generalized_index(BeaconBlockBody, 'blob_kzg_commitments'),
+        get_generalized_index(BeaconBlockBody, "blob_kzg_commitments"),
     )
 
     sidecars = []
@@ -212,14 +237,16 @@ def get_data_column_sidecars(signed_block: SignedBeaconBlock,
         for cells, proofs in cells_and_kzg_proofs:
             column_cells.append(cells[column_index])
             column_proofs.append(proofs[column_index])
-        sidecars.append(DataColumnSidecar(
-            index=column_index,
-            column=column_cells,
-            kzg_commitments=blob_kzg_commitments,
-            kzg_proofs=column_proofs,
-            signed_block_header=signed_block_header,
-            kzg_commitments_inclusion_proof=kzg_commitments_inclusion_proof,
-        ))
+        sidecars.append(
+            DataColumnSidecar(
+                index=column_index,
+                column=column_cells,
+                kzg_commitments=blob_kzg_commitments,
+                kzg_proofs=column_proofs,
+                signed_block_header=signed_block_header,
+                kzg_commitments_inclusion_proof=kzg_commitments_inclusion_proof,
+            )
+        )
     return sidecars
 ```
 
@@ -238,10 +265,16 @@ A node stores the custodied columns for the duration of the pruning period and r
 A node with validators attached downloads and custodies a higher minimum of custody groups per slot, determined by `get_validators_custody_requirement(state, validator_indices)`. Here, `state` is the current `BeaconState` and `validator_indices` is the list of indices corresponding to validators attached to the node. Any node with at least one validator attached, and with the sum of the balances of all attached validators being `total_node_balance`, downloads and custodies `total_node_balance // BALANCE_PER_ADDITIONAL_CUSTODY_GROUP` custody groups per slot, with a minimum of `VALIDATOR_CUSTODY_REQUIREMENT` and of course a maximum of `NUMBER_OF_CUSTODY_GROUPS`.
 
 ```python
-def get_validators_custody_requirement(state: BeaconState, validator_indices: Sequence[ValidatorIndex]) -> uint64:
-    total_node_balance = sum(state.balances[index] for index in validator_indices)
+def get_validators_custody_requirement(
+    state: BeaconState, validator_indices: Sequence[ValidatorIndex]
+) -> uint64:
+    total_node_balance = sum(
+        state.balances[index] for index in validator_indices
+    )
     count = total_node_balance // BALANCE_PER_ADDITIONAL_CUSTODY_GROUP
-    return min(max(count, VALIDATOR_CUSTODY_REQUIREMENT), NUMBER_OF_CUSTODY_GROUPS)
+    return min(
+        max(count, VALIDATOR_CUSTODY_REQUIREMENT), NUMBER_OF_CUSTODY_GROUPS
+    )
 ```
 
 This higher custody is advertised in the node's Metadata by setting a higher `custody_group_count` and in the node's ENR by setting a higher `cgc`. As with the regular custody requirement, a node with validators *may* still choose to custody, advertise and serve more than this minimum. As with the regular custody requirement, a node MUST backfill columns when syncing. In addition, when the validator custody requirement increases, due to an increase in the total balance of the attached validators, a node MUST backfill columns from the new custody groups. However, a node *may* wait to advertise a higher custody in its Metadata and ENR until backfilling is complete.

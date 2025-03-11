@@ -42,7 +42,9 @@ This is the beacon chain specification to assign new deposits to existing valida
 #### `is_reusable_validator`
 
 ```python
-def is_reusable_validator(validator: Validator, balance: Gwei, epoch: Epoch) -> bool:
+def is_reusable_validator(
+    validator: Validator, balance: Gwei, epoch: Epoch
+) -> bool:
     """
     Check if ``validator`` index can be re-assigned to a new deposit.
     """
@@ -61,7 +63,9 @@ def is_reusable_validator(validator: Validator, balance: Gwei, epoch: Epoch) -> 
 ```python
 def get_index_for_new_validator(state: BeaconState) -> ValidatorIndex:
     for index, validator in enumerate(state.validators):
-        if is_reusable_validator(validator, state.balances[index], get_current_epoch(state)):
+        if is_reusable_validator(
+            validator, state.balances[index], get_current_epoch(state)
+        ):
             return ValidatorIndex(index)
     return ValidatorIndex(len(state.validators))
 ```

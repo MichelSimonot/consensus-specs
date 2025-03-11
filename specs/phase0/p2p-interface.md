@@ -1072,10 +1072,16 @@ Because Phase 0 does not have shards and thus does not have Shard Committees, th
 * Select these subnets based on their node-id as specified by the following `compute_subscribed_subnets(node_id, epoch)` function.
 
 ```python
-def compute_subscribed_subnet(node_id: NodeID, epoch: Epoch, index: int) -> SubnetID:
+def compute_subscribed_subnet(
+    node_id: NodeID, epoch: Epoch, index: int
+) -> SubnetID:
     node_id_prefix = node_id >> (NODE_ID_BITS - ATTESTATION_SUBNET_PREFIX_BITS)
     node_offset = node_id % EPOCHS_PER_SUBNET_SUBSCRIPTION
-    permutation_seed = hash(uint_to_bytes(uint64((epoch + node_offset) // EPOCHS_PER_SUBNET_SUBSCRIPTION)))
+    permutation_seed = hash(
+        uint_to_bytes(
+            uint64((epoch + node_offset) // EPOCHS_PER_SUBNET_SUBSCRIPTION)
+        )
+    )
     permutated_prefix = compute_shuffled_index(
         node_id_prefix,
         1 << ATTESTATION_SUBNET_PREFIX_BITS,
@@ -1085,8 +1091,13 @@ def compute_subscribed_subnet(node_id: NodeID, epoch: Epoch, index: int) -> Subn
 ```
 
 ```python
-def compute_subscribed_subnets(node_id: NodeID, epoch: Epoch) -> Sequence[SubnetID]:
-    return [compute_subscribed_subnet(node_id, epoch, index) for index in range(SUBNETS_PER_NODE)]
+def compute_subscribed_subnets(
+    node_id: NodeID, epoch: Epoch
+) -> Sequence[SubnetID]:
+    return [
+        compute_subscribed_subnet(node_id, epoch, index)
+        for index in range(SUBNETS_PER_NODE)
+    ]
 ```
 
 *Note*: When preparing for a hard fork, a node must select and subscribe to subnets of the future fork versioning at least `EPOCHS_PER_SUBNET_SUBSCRIPTION` epochs in advance of the fork. These new subnets for the fork are maintained in addition to those for the current fork until the fork occurs. After the fork occurs, let the subnets from the previous fork reach the end of life with no replacements.

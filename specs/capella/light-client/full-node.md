@@ -22,7 +22,9 @@ This upgrade adds information about the execution payload to light client data a
 ### Modified `block_to_light_client_header`
 
 ```python
-def block_to_light_client_header(block: SignedBeaconBlock) -> LightClientHeader:
+def block_to_light_client_header(
+    block: SignedBeaconBlock,
+) -> LightClientHeader:
     epoch = compute_epoch_at_slot(block.message.slot)
 
     if epoch >= CAPELLA_FORK_EPOCH:
@@ -45,7 +47,8 @@ def block_to_light_client_header(block: SignedBeaconBlock) -> LightClientHeader:
             withdrawals_root=hash_tree_root(payload.withdrawals),
         )
         execution_branch = ExecutionBranch(
-            compute_merkle_proof(block.message.body, EXECUTION_PAYLOAD_GINDEX))
+            compute_merkle_proof(block.message.body, EXECUTION_PAYLOAD_GINDEX)
+        )
     else:
         # Note that during fork transitions, `finalized_header` may still point to earlier forks.
         # While Bellatrix blocks also contain an `ExecutionPayload` (minus `withdrawals_root`),

@@ -51,7 +51,9 @@ The block MUST NOT be considered valid until all valid `Blob`s have been downloa
 *Note*: Extraneous or invalid Blobs (in addition to KZG expected/referenced valid blobs) received on the p2p network MUST NOT invalidate a block that is otherwise valid and available.
 
 ```python
-def is_data_available(beacon_block_root: Root, blob_kzg_commitments: Sequence[KZGCommitment]) -> bool:
+def is_data_available(
+    beacon_block_root: Root, blob_kzg_commitments: Sequence[KZGCommitment]
+) -> bool:
     # `retrieve_blobs_and_proofs` is implementation and context dependent
     # It returns all the blobs for the given block root, and raises an exception if not available
     # Note: the p2p network does not guarantee sidecar retrieval outside of
@@ -79,7 +81,9 @@ def on_block(store: Store, signed_block: SignedBeaconBlock) -> None:
     assert get_current_slot(store) >= block.slot
 
     # Check that block is later than the finalized epoch slot (optimization to reduce calls to get_ancestor)
-    finalized_slot = compute_start_slot_at_epoch(store.finalized_checkpoint.epoch)
+    finalized_slot = compute_start_slot_at_epoch(
+        store.finalized_checkpoint.epoch
+    )
     assert block.slot > finalized_slot
     # Check block is a descendant of the finalized block at the checkpoint finalized slot
     finalized_checkpoint_block = get_checkpoint_block(
@@ -94,7 +98,9 @@ def on_block(store: Store, signed_block: SignedBeaconBlock) -> None:
     # If not, this block MAY be queued and subsequently considered when blob data becomes available
     # *Note*: Extraneous or invalid Blobs (in addition to the expected/referenced valid blobs)
     # received on the p2p network MUST NOT invalidate a block that is otherwise valid and available
-    assert is_data_available(hash_tree_root(block), block.body.blob_kzg_commitments)
+    assert is_data_available(
+        hash_tree_root(block), block.body.blob_kzg_commitments
+    )
 
     # Check the block is valid and compute the post-state
     # Make a copy of the state to avoid mutability issues
@@ -109,8 +115,12 @@ def on_block(store: Store, signed_block: SignedBeaconBlock) -> None:
 
     # Add block timeliness to the store
     time_into_slot = (store.time - store.genesis_time) % SECONDS_PER_SLOT
-    is_before_attesting_interval = time_into_slot < SECONDS_PER_SLOT // INTERVALS_PER_SLOT
-    is_timely = get_current_slot(store) == block.slot and is_before_attesting_interval
+    is_before_attesting_interval = (
+        time_into_slot < SECONDS_PER_SLOT // INTERVALS_PER_SLOT
+    )
+    is_timely = (
+        get_current_slot(store) == block.slot and is_before_attesting_interval
+    )
     store.block_timeliness[hash_tree_root(block)] = is_timely
 
     # Add proposer score boost if the block is timely and not conflicting with an existing block
@@ -119,7 +129,9 @@ def on_block(store: Store, signed_block: SignedBeaconBlock) -> None:
         store.proposer_boost_root = hash_tree_root(block)
 
     # Update checkpoints in store if necessary
-    update_checkpoints(store, state.current_justified_checkpoint, state.finalized_checkpoint)
+    update_checkpoints(
+        store, state.current_justified_checkpoint, state.finalized_checkpoint
+    )
 
     # Eagerly compute unrealized justification and finality.
     compute_pulled_up_tip(store, block_root)

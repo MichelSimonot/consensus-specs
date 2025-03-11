@@ -67,14 +67,18 @@ Proposer and Attester slashings described in Phase 0 remain in place with the ad
 To avoid custody slashings, the attester must never sign any shard transition for which the custody bit is one. The custody bit is computed using the custody secret:
 
 ```python
-def get_custody_secret(state: BeaconState,
-                       validator_index: ValidatorIndex,
-                       privkey: int,
-                       epoch: Epoch=None) -> BLSSignature:
+def get_custody_secret(
+    state: BeaconState,
+    validator_index: ValidatorIndex,
+    privkey: int,
+    epoch: Epoch = None,
+) -> BLSSignature:
     if epoch is None:
         epoch = get_current_epoch(state)
     period = get_custody_period_for_validator(validator_index, epoch)
-    epoch_to_sign = get_randao_epoch_for_custody_period(period, validator_index)
+    epoch_to_sign = get_randao_epoch_for_custody_period(
+        period, validator_index
+    )
     domain = get_domain(state, DOMAIN_RANDAO, epoch_to_sign)
     signing_root = compute_signing_root(Epoch(epoch_to_sign), domain)
     return bls.Sign(privkey, signing_root)

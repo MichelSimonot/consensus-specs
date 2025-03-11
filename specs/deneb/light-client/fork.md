@@ -22,7 +22,9 @@ This document describes how to upgrade existing light client objects based on th
 A Deneb `LightClientStore` can still process earlier light client data. In order to do so, that pre-Deneb data needs to be locally upgraded to Deneb before processing.
 
 ```python
-def upgrade_lc_header_to_deneb(pre: capella.LightClientHeader) -> LightClientHeader:
+def upgrade_lc_header_to_deneb(
+    pre: capella.LightClientHeader,
+) -> LightClientHeader:
     return LightClientHeader(
         beacon=pre.beacon,
         execution=ExecutionPayloadHeader(
@@ -49,7 +51,9 @@ def upgrade_lc_header_to_deneb(pre: capella.LightClientHeader) -> LightClientHea
 ```
 
 ```python
-def upgrade_lc_bootstrap_to_deneb(pre: capella.LightClientBootstrap) -> LightClientBootstrap:
+def upgrade_lc_bootstrap_to_deneb(
+    pre: capella.LightClientBootstrap,
+) -> LightClientBootstrap:
     return LightClientBootstrap(
         header=upgrade_lc_header_to_deneb(pre.header),
         current_sync_committee=pre.current_sync_committee,
@@ -58,7 +62,9 @@ def upgrade_lc_bootstrap_to_deneb(pre: capella.LightClientBootstrap) -> LightCli
 ```
 
 ```python
-def upgrade_lc_update_to_deneb(pre: capella.LightClientUpdate) -> LightClientUpdate:
+def upgrade_lc_update_to_deneb(
+    pre: capella.LightClientUpdate,
+) -> LightClientUpdate:
     return LightClientUpdate(
         attested_header=upgrade_lc_header_to_deneb(pre.attested_header),
         next_sync_committee=pre.next_sync_committee,
@@ -71,7 +77,9 @@ def upgrade_lc_update_to_deneb(pre: capella.LightClientUpdate) -> LightClientUpd
 ```
 
 ```python
-def upgrade_lc_finality_update_to_deneb(pre: capella.LightClientFinalityUpdate) -> LightClientFinalityUpdate:
+def upgrade_lc_finality_update_to_deneb(
+    pre: capella.LightClientFinalityUpdate,
+) -> LightClientFinalityUpdate:
     return LightClientFinalityUpdate(
         attested_header=upgrade_lc_header_to_deneb(pre.attested_header),
         finalized_header=upgrade_lc_header_to_deneb(pre.finalized_header),
@@ -82,7 +90,9 @@ def upgrade_lc_finality_update_to_deneb(pre: capella.LightClientFinalityUpdate) 
 ```
 
 ```python
-def upgrade_lc_optimistic_update_to_deneb(pre: capella.LightClientOptimisticUpdate) -> LightClientOptimisticUpdate:
+def upgrade_lc_optimistic_update_to_deneb(
+    pre: capella.LightClientOptimisticUpdate,
+) -> LightClientOptimisticUpdate:
     return LightClientOptimisticUpdate(
         attested_header=upgrade_lc_header_to_deneb(pre.attested_header),
         sync_aggregate=pre.sync_aggregate,
@@ -95,7 +105,9 @@ def upgrade_lc_optimistic_update_to_deneb(pre: capella.LightClientOptimisticUpda
 Existing `LightClientStore` objects based on Capella MUST be upgraded to Deneb before Deneb based light client data can be processed. The `LightClientStore` upgrade MAY be performed before `DENEB_FORK_EPOCH`.
 
 ```python
-def upgrade_lc_store_to_deneb(pre: capella.LightClientStore) -> LightClientStore:
+def upgrade_lc_store_to_deneb(
+    pre: capella.LightClientStore,
+) -> LightClientStore:
     if pre.best_valid_update is None:
         best_valid_update = None
     else:

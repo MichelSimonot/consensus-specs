@@ -58,12 +58,13 @@ Additionally, if `payload_attributes` is provided, this function sets in motion 
 `head_block_hash` and returns an identifier of initiated process.
 
 ```python
-def notify_forkchoice_updated(self: ExecutionEngine,
-                              head_block_hash: Hash32,
-                              safe_block_hash: Hash32,
-                              finalized_block_hash: Hash32,
-                              payload_attributes: Optional[PayloadAttributes]) -> Optional[PayloadId]:
-    ...
+def notify_forkchoice_updated(
+    self: ExecutionEngine,
+    head_block_hash: Hash32,
+    safe_block_hash: Hash32,
+    finalized_block_hash: Hash32,
+    payload_attributes: Optional[PayloadAttributes],
+) -> Optional[PayloadId]: ...
 ```
 
 *Note*: The `(head_block_hash, finalized_block_hash)` values of the `notify_forkchoice_updated` function call maps on the `POS_FORKCHOICE_UPDATED` event defined in the [EIP-3675](https://eips.ethereum.org/EIPS/eip-3675#definitions).
@@ -125,8 +126,9 @@ def should_override_forkchoice_update(store: Store, head_root: Root) -> bool:
     proposing_on_time = is_proposing_on_time(store)
 
     # Note that this condition is different from `get_proposer_head`
-    current_time_ok = (head_block.slot == current_slot
-                       or (proposal_slot == current_slot and proposing_on_time))
+    current_time_ok = head_block.slot == current_slot or (
+        proposal_slot == current_slot and proposing_on_time
+    )
     single_slot_reorg = parent_slot_ok and current_time_ok
 
     # Check the head weight only if the attestations from the head slot have already been applied.
@@ -139,9 +141,18 @@ def should_override_forkchoice_update(store: Store, head_root: Root) -> bool:
         head_weak = True
         parent_strong = True
 
-    return all([head_late, shuffling_stable, ffg_competitive, finalization_ok,
-                proposing_reorg_slot, single_slot_reorg,
-                head_weak, parent_strong])
+    return all(
+        [
+            head_late,
+            shuffling_stable,
+            ffg_competitive,
+            finalization_ok,
+            proposing_reorg_slot,
+            single_slot_reorg,
+            head_weak,
+            parent_strong,
+        ]
+    )
 ```
 
 *Note*: The ordering of conditions is a suggestion only. Implementations are free to
@@ -194,8 +205,12 @@ Used by fork-choice handler, `on_block`.
 
 ```python
 def is_valid_terminal_pow_block(block: PowBlock, parent: PowBlock) -> bool:
-    is_total_difficulty_reached = block.total_difficulty >= TERMINAL_TOTAL_DIFFICULTY
-    is_parent_total_difficulty_valid = parent.total_difficulty < TERMINAL_TOTAL_DIFFICULTY
+    is_total_difficulty_reached = (
+        block.total_difficulty >= TERMINAL_TOTAL_DIFFICULTY
+    )
+    is_parent_total_difficulty_valid = (
+        parent.total_difficulty < TERMINAL_TOTAL_DIFFICULTY
+    )
     return is_total_difficulty_reached and is_parent_total_difficulty_valid
 ```
 
@@ -212,7 +227,10 @@ def validate_merge_block(block: BeaconBlock) -> None:
     """
     if TERMINAL_BLOCK_HASH != Hash32():
         # If `TERMINAL_BLOCK_HASH` is used as an override, the activation epoch must be reached.
-        assert compute_epoch_at_slot(block.slot) >= TERMINAL_BLOCK_HASH_ACTIVATION_EPOCH
+        assert (
+            compute_epoch_at_slot(block.slot)
+            >= TERMINAL_BLOCK_HASH_ACTIVATION_EPOCH
+        )
         assert block.body.execution_payload.parent_hash == TERMINAL_BLOCK_HASH
         return
 
@@ -249,7 +267,9 @@ def on_block(store: Store, signed_block: SignedBeaconBlock) -> None:
     assert get_current_slot(store) >= block.slot
 
     # Check that block is later than the finalized epoch slot (optimization to reduce calls to get_ancestor)
-    finalized_slot = compute_start_slot_at_epoch(store.finalized_checkpoint.epoch)
+    finalized_slot = compute_start_slot_at_epoch(
+        store.finalized_checkpoint.epoch
+    )
     assert block.slot > finalized_slot
     # Check block is a descendant of the finalized block at the checkpoint finalized slot
     finalized_checkpoint_block = get_checkpoint_block(
@@ -275,8 +295,12 @@ def on_block(store: Store, signed_block: SignedBeaconBlock) -> None:
 
     # Add block timeliness to the store
     time_into_slot = (store.time - store.genesis_time) % SECONDS_PER_SLOT
-    is_before_attesting_interval = time_into_slot < SECONDS_PER_SLOT // INTERVALS_PER_SLOT
-    is_timely = get_current_slot(store) == block.slot and is_before_attesting_interval
+    is_before_attesting_interval = (
+        time_into_slot < SECONDS_PER_SLOT // INTERVALS_PER_SLOT
+    )
+    is_timely = (
+        get_current_slot(store) == block.slot and is_before_attesting_interval
+    )
     store.block_timeliness[hash_tree_root(block)] = is_timely
 
     # Add proposer score boost if the block is timely and not conflicting with an existing block
@@ -285,7 +309,9 @@ def on_block(store: Store, signed_block: SignedBeaconBlock) -> None:
         store.proposer_boost_root = hash_tree_root(block)
 
     # Update checkpoints in store if necessary
-    update_checkpoints(store, state.current_justified_checkpoint, state.finalized_checkpoint)
+    update_checkpoints(
+        store, state.current_justified_checkpoint, state.finalized_checkpoint
+    )
 
     # Eagerly compute unrealized justification and finality.
     compute_pulled_up_tip(store, block_root)

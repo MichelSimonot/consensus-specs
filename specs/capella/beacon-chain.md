@@ -130,6 +130,7 @@ class HistoricalSummary(Container):
     `HistoricalSummary` matches the components of the phase0 `HistoricalBatch`
     making the two hash_tree_root-compatible.
     """
+
     block_summary_root: Root
     state_summary_root: Root
 ```
@@ -156,7 +157,9 @@ class ExecutionPayload(Container):
     # Extra payload fields
     block_hash: Hash32  # Hash of execution block
     transactions: List[Transaction, MAX_TRANSACTIONS_PER_PAYLOAD]
-    withdrawals: List[Withdrawal, MAX_WITHDRAWALS_PER_PAYLOAD]  # [New in Capella]
+    withdrawals: List[
+        Withdrawal, MAX_WITHDRAWALS_PER_PAYLOAD
+    ]  # [New in Capella]
 ```
 
 #### `ExecutionPayloadHeader`
@@ -199,7 +202,9 @@ class BeaconBlockBody(Container):
     # Execution
     execution_payload: ExecutionPayload
     # Capella operations
-    bls_to_execution_changes: List[SignedBLSToExecutionChange, MAX_BLS_TO_EXECUTION_CHANGES]  # [New in Capella]
+    bls_to_execution_changes: List[
+        SignedBLSToExecutionChange, MAX_BLS_TO_EXECUTION_CHANGES
+    ]  # [New in Capella]
 ```
 
 #### `BeaconState`
@@ -215,10 +220,14 @@ class BeaconState(Container):
     latest_block_header: BeaconBlockHeader
     block_roots: Vector[Root, SLOTS_PER_HISTORICAL_ROOT]
     state_roots: Vector[Root, SLOTS_PER_HISTORICAL_ROOT]
-    historical_roots: List[Root, HISTORICAL_ROOTS_LIMIT]  # Frozen in Capella, replaced by historical_summaries
+    historical_roots: List[
+        Root, HISTORICAL_ROOTS_LIMIT
+    ]  # Frozen in Capella, replaced by historical_summaries
     # Eth1
     eth1_data: Eth1Data
-    eth1_data_votes: List[Eth1Data, EPOCHS_PER_ETH1_VOTING_PERIOD * SLOTS_PER_EPOCH]
+    eth1_data_votes: List[
+        Eth1Data, EPOCHS_PER_ETH1_VOTING_PERIOD * SLOTS_PER_EPOCH
+    ]
     eth1_deposit_index: uint64
     # Registry
     validators: List[Validator, VALIDATOR_REGISTRY_LIMIT]
@@ -226,12 +235,20 @@ class BeaconState(Container):
     # Randomness
     randao_mixes: Vector[Bytes32, EPOCHS_PER_HISTORICAL_VECTOR]
     # Slashings
-    slashings: Vector[Gwei, EPOCHS_PER_SLASHINGS_VECTOR]  # Per-epoch sums of slashed effective balances
+    slashings: Vector[
+        Gwei, EPOCHS_PER_SLASHINGS_VECTOR
+    ]  # Per-epoch sums of slashed effective balances
     # Participation
-    previous_epoch_participation: List[ParticipationFlags, VALIDATOR_REGISTRY_LIMIT]
-    current_epoch_participation: List[ParticipationFlags, VALIDATOR_REGISTRY_LIMIT]
+    previous_epoch_participation: List[
+        ParticipationFlags, VALIDATOR_REGISTRY_LIMIT
+    ]
+    current_epoch_participation: List[
+        ParticipationFlags, VALIDATOR_REGISTRY_LIMIT
+    ]
     # Finality
-    justification_bits: Bitvector[JUSTIFICATION_BITS_LENGTH]  # Bit set for every recent justified epoch
+    justification_bits: Bitvector[
+        JUSTIFICATION_BITS_LENGTH
+    ]  # Bit set for every recent justified epoch
     previous_justified_checkpoint: Checkpoint
     current_justified_checkpoint: Checkpoint
     finalized_checkpoint: Checkpoint
@@ -241,12 +258,16 @@ class BeaconState(Container):
     current_sync_committee: SyncCommittee
     next_sync_committee: SyncCommittee
     # Execution
-    latest_execution_payload_header: ExecutionPayloadHeader  # [Modified in Capella]
+    latest_execution_payload_header: (
+        ExecutionPayloadHeader  # [Modified in Capella]
+    )
     # Withdrawals
     next_withdrawal_index: WithdrawalIndex  # [New in Capella]
     next_withdrawal_validator_index: ValidatorIndex  # [New in Capella]
     # Deep history valid from Capella onwards
-    historical_summaries: List[HistoricalSummary, HISTORICAL_ROOTS_LIMIT]  # [New in Capella]
+    historical_summaries: List[
+        HistoricalSummary, HISTORICAL_ROOTS_LIMIT
+    ]  # [New in Capella]
 ```
 
 ## Helpers
@@ -260,13 +281,17 @@ def has_eth1_withdrawal_credential(validator: Validator) -> bool:
     """
     Check if ``validator`` has an 0x01 prefixed "eth1" withdrawal credential.
     """
-    return validator.withdrawal_credentials[:1] == ETH1_ADDRESS_WITHDRAWAL_PREFIX
+    return (
+        validator.withdrawal_credentials[:1] == ETH1_ADDRESS_WITHDRAWAL_PREFIX
+    )
 ```
 
 #### `is_fully_withdrawable_validator`
 
 ```python
-def is_fully_withdrawable_validator(validator: Validator, balance: Gwei, epoch: Epoch) -> bool:
+def is_fully_withdrawable_validator(
+    validator: Validator, balance: Gwei, epoch: Epoch
+) -> bool:
     """
     Check if ``validator`` is fully withdrawable.
     """
@@ -280,13 +305,21 @@ def is_fully_withdrawable_validator(validator: Validator, balance: Gwei, epoch: 
 #### `is_partially_withdrawable_validator`
 
 ```python
-def is_partially_withdrawable_validator(validator: Validator, balance: Gwei) -> bool:
+def is_partially_withdrawable_validator(
+    validator: Validator, balance: Gwei
+) -> bool:
     """
     Check if ``validator`` is partially withdrawable.
     """
-    has_max_effective_balance = validator.effective_balance == MAX_EFFECTIVE_BALANCE
+    has_max_effective_balance = (
+        validator.effective_balance == MAX_EFFECTIVE_BALANCE
+    )
     has_excess_balance = balance > MAX_EFFECTIVE_BALANCE
-    return has_eth1_withdrawal_credential(validator) and has_max_effective_balance and has_excess_balance
+    return (
+        has_eth1_withdrawal_credential(validator)
+        and has_max_effective_balance
+        and has_excess_balance
+    )
 ```
 
 ## Beacon chain state transition function
@@ -331,8 +364,12 @@ def process_historical_summaries_update(state: BeaconState) -> None:
 def process_block(state: BeaconState, block: BeaconBlock) -> None:
     process_block_header(state, block)
     # [Modified in Capella] Removed `is_execution_enabled` check in Capella
-    process_withdrawals(state, block.body.execution_payload)  # [New in Capella]
-    process_execution_payload(state, block.body, EXECUTION_ENGINE)  # [Modified in Capella]
+    process_withdrawals(
+        state, block.body.execution_payload
+    )  # [New in Capella]
+    process_execution_payload(
+        state, block.body, EXECUTION_ENGINE
+    )  # [Modified in Capella]
     process_randao(state, block.body)
     process_eth1_data(state, block.body)
     process_operations(state, block.body)  # [Modified in Capella]
@@ -352,24 +389,34 @@ def get_expected_withdrawals(state: BeaconState) -> Sequence[Withdrawal]:
         validator = state.validators[validator_index]
         balance = state.balances[validator_index]
         if is_fully_withdrawable_validator(validator, balance, epoch):
-            withdrawals.append(Withdrawal(
-                index=withdrawal_index,
-                validator_index=validator_index,
-                address=ExecutionAddress(validator.withdrawal_credentials[12:]),
-                amount=balance,
-            ))
+            withdrawals.append(
+                Withdrawal(
+                    index=withdrawal_index,
+                    validator_index=validator_index,
+                    address=ExecutionAddress(
+                        validator.withdrawal_credentials[12:]
+                    ),
+                    amount=balance,
+                )
+            )
             withdrawal_index += WithdrawalIndex(1)
         elif is_partially_withdrawable_validator(validator, balance):
-            withdrawals.append(Withdrawal(
-                index=withdrawal_index,
-                validator_index=validator_index,
-                address=ExecutionAddress(validator.withdrawal_credentials[12:]),
-                amount=balance - MAX_EFFECTIVE_BALANCE,
-            ))
+            withdrawals.append(
+                Withdrawal(
+                    index=withdrawal_index,
+                    validator_index=validator_index,
+                    address=ExecutionAddress(
+                        validator.withdrawal_credentials[12:]
+                    ),
+                    amount=balance - MAX_EFFECTIVE_BALANCE,
+                )
+            )
             withdrawal_index += WithdrawalIndex(1)
         if len(withdrawals) == MAX_WITHDRAWALS_PER_PAYLOAD:
             break
-        validator_index = ValidatorIndex((validator_index + 1) % len(state.validators))
+        validator_index = ValidatorIndex(
+            (validator_index + 1) % len(state.validators)
+        )
     return withdrawals
 ```
 
@@ -386,17 +433,27 @@ def process_withdrawals(state: BeaconState, payload: ExecutionPayload) -> None:
     # Update the next withdrawal index if this block contained withdrawals
     if len(expected_withdrawals) != 0:
         latest_withdrawal = expected_withdrawals[-1]
-        state.next_withdrawal_index = WithdrawalIndex(latest_withdrawal.index + 1)
+        state.next_withdrawal_index = WithdrawalIndex(
+            latest_withdrawal.index + 1
+        )
 
     # Update the next validator index to start the next withdrawal sweep
     if len(expected_withdrawals) == MAX_WITHDRAWALS_PER_PAYLOAD:
         # Next sweep starts after the latest withdrawal's validator index
-        next_validator_index = ValidatorIndex((expected_withdrawals[-1].validator_index + 1) % len(state.validators))
+        next_validator_index = ValidatorIndex(
+            (expected_withdrawals[-1].validator_index + 1)
+            % len(state.validators)
+        )
         state.next_withdrawal_validator_index = next_validator_index
     else:
         # Advance sweep by the max length of the sweep if there was not a full set of withdrawals
-        next_index = state.next_withdrawal_validator_index + MAX_VALIDATORS_PER_WITHDRAWALS_SWEEP
-        next_validator_index = ValidatorIndex(next_index % len(state.validators))
+        next_index = (
+            state.next_withdrawal_validator_index
+            + MAX_VALIDATORS_PER_WITHDRAWALS_SWEEP
+        )
+        next_validator_index = ValidatorIndex(
+            next_index % len(state.validators)
+        )
         state.next_withdrawal_validator_index = next_validator_index
 ```
 
@@ -406,17 +463,27 @@ def process_withdrawals(state: BeaconState, payload: ExecutionPayload) -> None:
 and removed the `is_merge_transition_complete` check.
 
 ```python
-def process_execution_payload(state: BeaconState, body: BeaconBlockBody, execution_engine: ExecutionEngine) -> None:
+def process_execution_payload(
+    state: BeaconState,
+    body: BeaconBlockBody,
+    execution_engine: ExecutionEngine,
+) -> None:
     payload = body.execution_payload
     # [Modified in Capella] Removed `is_merge_transition_complete` check in Capella
     # Verify consistency of the parent hash with respect to the previous execution payload header
-    assert payload.parent_hash == state.latest_execution_payload_header.block_hash
+    assert (
+        payload.parent_hash == state.latest_execution_payload_header.block_hash
+    )
     # Verify prev_randao
-    assert payload.prev_randao == get_randao_mix(state, get_current_epoch(state))
+    assert payload.prev_randao == get_randao_mix(
+        state, get_current_epoch(state)
+    )
     # Verify timestamp
     assert payload.timestamp == compute_timestamp_at_slot(state, state.slot)
     # Verify the execution payload is valid
-    assert execution_engine.verify_and_notify_new_payload(NewPayloadRequest(execution_payload=payload))
+    assert execution_engine.verify_and_notify_new_payload(
+        NewPayloadRequest(execution_payload=payload)
+    )
     # Cache execution payload header
     state.latest_execution_payload_header = ExecutionPayloadHeader(
         parent_hash=payload.parent_hash,
@@ -433,7 +500,9 @@ def process_execution_payload(state: BeaconState, body: BeaconBlockBody, executi
         base_fee_per_gas=payload.base_fee_per_gas,
         block_hash=payload.block_hash,
         transactions_root=hash_tree_root(payload.transactions),
-        withdrawals_root=hash_tree_root(payload.withdrawals),  # [New in Capella]
+        withdrawals_root=hash_tree_root(
+            payload.withdrawals
+        ),  # [New in Capella]
     )
 ```
 
@@ -444,9 +513,13 @@ def process_execution_payload(state: BeaconState, body: BeaconBlockBody, executi
 ```python
 def process_operations(state: BeaconState, body: BeaconBlockBody) -> None:
     # Verify that outstanding deposits are processed up to the maximum number of deposits
-    assert len(body.deposits) == min(MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index)
+    assert len(body.deposits) == min(
+        MAX_DEPOSITS, state.eth1_data.deposit_count - state.eth1_deposit_index
+    )
 
-    def for_ops(operations: Sequence[Any], fn: Callable[[BeaconState, Any], None]) -> None:
+    def for_ops(
+        operations: Sequence[Any], fn: Callable[[BeaconState, Any], None]
+    ) -> None:
         for operation in operations:
             fn(state, operation)
 
@@ -455,14 +528,17 @@ def process_operations(state: BeaconState, body: BeaconBlockBody) -> None:
     for_ops(body.attestations, process_attestation)
     for_ops(body.deposits, process_deposit)
     for_ops(body.voluntary_exits, process_voluntary_exit)
-    for_ops(body.bls_to_execution_changes, process_bls_to_execution_change)  # [New in Capella]
+    for_ops(
+        body.bls_to_execution_changes, process_bls_to_execution_change
+    )  # [New in Capella]
 ```
 
 #### New `process_bls_to_execution_change`
 
 ```python
-def process_bls_to_execution_change(state: BeaconState,
-                                    signed_address_change: SignedBLSToExecutionChange) -> None:
+def process_bls_to_execution_change(
+    state: BeaconState, signed_address_change: SignedBLSToExecutionChange
+) -> None:
     address_change = signed_address_change.message
 
     assert address_change.validator_index < len(state.validators)
@@ -470,16 +546,26 @@ def process_bls_to_execution_change(state: BeaconState,
     validator = state.validators[address_change.validator_index]
 
     assert validator.withdrawal_credentials[:1] == BLS_WITHDRAWAL_PREFIX
-    assert validator.withdrawal_credentials[1:] == hash(address_change.from_bls_pubkey)[1:]
+    assert (
+        validator.withdrawal_credentials[1:]
+        == hash(address_change.from_bls_pubkey)[1:]
+    )
 
     # Fork-agnostic domain since address changes are valid across forks
-    domain = compute_domain(DOMAIN_BLS_TO_EXECUTION_CHANGE, genesis_validators_root=state.genesis_validators_root)
+    domain = compute_domain(
+        DOMAIN_BLS_TO_EXECUTION_CHANGE,
+        genesis_validators_root=state.genesis_validators_root,
+    )
     signing_root = compute_signing_root(address_change, domain)
-    assert bls.Verify(address_change.from_bls_pubkey, signing_root, signed_address_change.signature)
+    assert bls.Verify(
+        address_change.from_bls_pubkey,
+        signing_root,
+        signed_address_change.signature,
+    )
 
     validator.withdrawal_credentials = (
         ETH1_ADDRESS_WITHDRAWAL_PREFIX
-        + b'\x00' * 11
+        + b"\x00" * 11
         + address_change.to_execution_address
     )
 ```
