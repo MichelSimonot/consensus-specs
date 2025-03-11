@@ -37,6 +37,7 @@ test = [
 ]
 lint = [
   "codespell==2.4.0",
+  "doccmd==2025.3.6",
   "flake8==5.0.4",
   "mypy==0.981",
   "pylint==3.3.1",

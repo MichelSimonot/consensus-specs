@@ -207,6 +207,7 @@ lint: pyspec _check_toc
 	@$(PYTHON_VENV) -m flake8 --config $(FLAKE8_CONFIG) $(TEST_GENERATORS_DIR)
 	@$(PYTHON_VENV) -m pylint --rcfile $(PYLINT_CONFIG) $(PYLINT_SCOPE)
 	@$(PYTHON_VENV) -m mypy --config-file $(MYPY_CONFIG) $(MYPY_SCOPE)
+	@$(PYTHON_VENV) -m doccmd -l python --no-pad-file --command="pycodestyle --max-line-length=120 --ignore=E252,W503,W504" specs/
 
 ###############################################################################
 # Generators
