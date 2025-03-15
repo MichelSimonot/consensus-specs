@@ -208,6 +208,9 @@ lint: pyspec _check_toc
 	@$(PYTHON_VENV) -m pylint --rcfile $(PYLINT_CONFIG) $(PYLINT_SCOPE)
 	@$(PYTHON_VENV) -m mypy --config-file $(MYPY_CONFIG) $(MYPY_SCOPE)
 
+lint2: pyspec
+	@$(PYTHON_VENV) -m black $(TEST_GENERATORS_DIR)
+
 ###############################################################################
 # Generators
 ###############################################################################

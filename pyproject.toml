@@ -36,6 +36,7 @@ test = [
   "pytest==8.3.4",
 ]
 lint = [
+  "black==25.1.0",
   "codespell==2.4.0",
   "flake8==5.0.4",
   "mypy==0.981",
@@ -53,3 +54,6 @@ docs = [
   "mkdocs-material==9.1.5",
   "mkdocs==1.4.2",
 ]
+
+[tool.black]
+line-length = 120
